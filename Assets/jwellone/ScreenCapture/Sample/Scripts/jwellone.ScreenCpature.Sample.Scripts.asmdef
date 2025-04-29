@@ -1,0 +1,17 @@
+{
+    "name": "jwellone.ScreenCpature.Sample.Scripts",
+    "rootNamespace": "",
+    "references": [
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:02a51ae2a1c9b4f0a874f77bfec21532"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
