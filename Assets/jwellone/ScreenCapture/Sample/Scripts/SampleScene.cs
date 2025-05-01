@@ -1,3 +1,4 @@
+using System.IO;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
@@ -11,14 +12,6 @@ namespace jwellone.Sample
 {
     public class SampleScene : MonoBehaviour
     {
-        enum Override
-        {
-            None,
-            ReadPixels,
-            CopyTexture,
-            AsyncGPUReadback
-        }
-
         [Header("Camera")]
         [SerializeField] Camera _camera = null!;
         [SerializeField] Transform _cameraCenterPoint = null!;
@@ -28,48 +21,34 @@ namespace jwellone.Sample
         [Header("Cube")]
         [SerializeField] GameObject _prefabCube = null!;
 
-        [Header("Capture")]
-        [SerializeField] Override _override = Override.None;
-
         [Header("UI")]
         [SerializeField] Image _imgBg = null!;
         [SerializeField] Text _text = null!;
-        [SerializeField] RawImage _rawImageForScreen = null!;
-        [SerializeField] RawImage _rawImageForCamera = null!;
+        [SerializeField] RawImage _rawImage = null!;
         [SerializeField] Image _imgSourceFpsBar = null!;
 
         int _cubeCount = 1;
         float _time;
         bool _executeScreenCapture = true;
         bool _executeCameraCapture = true;
-        Texture2D? _cacheScreenTexture;
-        Texture2D? _cacheCameraTexture;
+        Texture2D? _cacheTexture;
         CancellationTokenSource? _cachCancellationTokenSource;
         readonly List<Image> _imgBars = new();
+        readonly IScreenshot _readPixels = new ReadPixelsScreenshot();
+        readonly IScreenshot _copyTexture = new GraphicsCopyTextureScreenshot();
+        readonly IScreenshot _asyncGpuReadback = new AsyncGPUReadbackScreenshot();
 
-        Texture2D? _screenTexture
+
+        Texture2D? _texture
         {
-            get => _cacheScreenTexture;
+            get => _cacheTexture;
             set
             {
-                if (_cacheScreenTexture != null)
+                if (_cacheTexture != null)
                 {
-                    Destroy(_cacheScreenTexture);
+                    Destroy(_cacheTexture);
                 }
-                _cacheScreenTexture = value;
-            }
-        }
-
-        Texture2D? _cameraTexture
-        {
-            get => _cacheCameraTexture;
-            set
-            {
-                if (_cacheCameraTexture != null)
-                {
-                    Destroy(_cacheCameraTexture);
-                }
-                _cacheCameraTexture = value;
+                _cacheTexture = value;
             }
         }
 
@@ -99,33 +78,22 @@ namespace jwellone.Sample
                 rect.sizeDelta = size;
                 _imgBars.Add(bar);
             }
+
+            SetScreenCapture(true);
         }
 
         void Start()
         {
-            switch (_override)
-            {
-                case Override.ReadPixels: ScreenCapture.screenshot = new ReadPixelsScreenshot(); break;
-                case Override.CopyTexture: ScreenCapture.screenshot = new GraphicsCopyTextureScreenshot(); break;
-                case Override.AsyncGPUReadback: ScreenCapture.screenshot = new AsyncGPUReadbackScreenshot(); break;
-            }
-
             var width = Screen.width;
             var height = Screen.height;
-            _screenTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            _screenTexture.Apply(false, false);
+            _texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            _texture.Apply(false, false);
 
-            _cameraTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            _cameraTexture.Apply(false, false);
-
-            var size = _rawImageForScreen.rectTransform.sizeDelta;
+            var size = _rawImage.rectTransform.sizeDelta;
             size.x = Screen.width;
             size.y = Screen.height;
-            _rawImageForScreen.rectTransform.sizeDelta = size;
-            _rawImageForScreen.texture = _screenTexture;
-
-            _rawImageForCamera.rectTransform.sizeDelta = size;
-            _rawImageForCamera.texture = _cameraTexture;
+            _rawImage.rectTransform.sizeDelta = size;
+            _rawImage.texture = _texture;
 
             var token = _cancellationTokenSource!.Token;
             UniTask.Void(async () =>
@@ -134,7 +102,7 @@ namespace jwellone.Sample
                 {
                     if (_executeScreenCapture)
                     {
-                        await ScreenCapture.screenshot.CopyAsync(_screenTexture!, token);
+                        await ScreenCapture.screenshot.CopyAsync(_texture!, token);
                     }
                     else
                     {
@@ -149,7 +117,7 @@ namespace jwellone.Sample
                 {
                     if (_executeCameraCapture)
                     {
-                        await ScreenCapture.screenshot.CopyAsync(_camera, _cameraTexture!, token);
+                        await ScreenCapture.screenshot.CopyAsync(_camera, _texture!, token);
                     }
                     else
                     {
@@ -158,7 +126,6 @@ namespace jwellone.Sample
                 }
             });
 
-#if false
             UniTask.Void(async () =>
             {
                 var path = Path.Combine(Application.persistentDataPath, "screen.jpg");
@@ -190,7 +157,6 @@ namespace jwellone.Sample
                     }
                 }
             });
-#endif
         }
 
         void OnEnable()
@@ -205,8 +171,7 @@ namespace jwellone.Sample
 
         void OnDestroy()
         {
-            _screenTexture = null;
-            _cameraTexture = null;
+            _texture = null;
         }
 
         void Update()
@@ -269,14 +234,35 @@ namespace jwellone.Sample
             _imgBg.color = color;
         }
 
-        public void OnClickRawImageForScreen()
+        void SetScreenCapture(bool flag)
         {
-            _executeScreenCapture = !_executeScreenCapture;
+            _executeScreenCapture = flag;
+            _executeCameraCapture = !flag;
         }
 
-        public void OnClickRawImageForCamera()
+        public void OnClickScreenCapture()
         {
-            _executeCameraCapture = !_executeCameraCapture;
+            SetScreenCapture(true);
+        }
+
+        public void OnClickCameraCapture()
+        {
+            SetScreenCapture(false);
+        }
+
+        public void OnClickReadPixels()
+        {
+            ScreenCapture.screenshot = _readPixels;
+        }
+
+        public void OnClickCopyTexture()
+        {
+            ScreenCapture.screenshot = _copyTexture;
+        }
+
+        public void OnClickAsyncGpuReadback()
+        {
+            ScreenCapture.screenshot = _asyncGpuReadback;
         }
     }
 }
