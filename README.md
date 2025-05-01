@@ -8,7 +8,19 @@
 
 # ScreenCapture
 
+Can capture and save images of the entire screen or a specified camera. Can also inherit the IScreenshot interface and use your own processing.
+
 ## Getting Started
+
+- Acquiring a captured image
+  - User ScreenCapture.screenshot.CopyAsync or ScreenCapture.screenshot.GetAsync function.
+
+- Save the captured image
+  - User ScreenCapture.screenshot.SaveAsync function.
+
+Please also run SampleScene.unity to check it out.
+
+https://github.com/user-attachments/assets/14fed0f7-90fc-4f7f-9cac-b2b6c5713a1b
 
 ## Authors
 Developer:[Yasuhiko Usui.](https://github.com/UsuiYasuhiko-jw1)
