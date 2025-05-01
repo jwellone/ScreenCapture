@@ -47,7 +47,34 @@ namespace jwellone
 
         public override async UniTask CopyAsync(Texture2D dest, CancellationToken token)
         {
-            await _copy.CopyAsync(dest, token);
+            RenderTexture? destRT = null;
+            try
+            {
+                await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate, cancellationToken: token);
+
+                var sourceRT = RenderTexture.GetTemporary(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32);
+                destRT = RenderTexture.GetTemporary(dest.width, dest.height, 0, RenderTextureFormat.ARGB32);
+
+                UnityEngine.ScreenCapture.CaptureScreenshotIntoRenderTexture(sourceRT);
+
+                blit!.Blit(sourceRT, destRT);
+
+                RenderTexture.ReleaseTemporary(sourceRT);
+
+                var request = await AsyncGPUReadback.Request(destRT, 0, destRT.graphicsFormat);
+                if (!token.IsCancellationRequested && !request.hasError)
+                {
+                    dest.LoadRawTextureData(request.GetData<Color32>());
+                    dest.Apply();
+                }
+            }
+            finally
+            {
+                if (destRT != null)
+                {
+                    RenderTexture.ReleaseTemporary(destRT);
+                }
+            }
         }
 
         public override async UniTask<Texture2D?> CreateAsync(Camera target, int width, int height, CancellationToken token)
@@ -57,7 +84,28 @@ namespace jwellone
 
         public override async UniTask CopyAsync(Camera target, Texture2D dest, CancellationToken token)
         {
-            await _copy.CopyAsync(target, dest, token);
+            RenderTexture? destRT = null;
+            try
+            {
+                await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate, cancellationToken: token);
+
+                destRT = RenderTexture.GetTemporary(dest.width, dest.height, 24, RenderTextureFormat.ARGB32);
+                ScreenCapture.Render(target, destRT);
+
+                var request = await AsyncGPUReadback.Request(destRT, 0, destRT.graphicsFormat);
+                if (!token.IsCancellationRequested && !request.hasError)
+                {
+                    dest.LoadRawTextureData(request.GetData<Color32>());
+                    dest.Apply();
+                }
+            }
+            finally
+            {
+                if (destRT != null)
+                {
+                    RenderTexture.ReleaseTemporary(destRT);
+                }
+            }
         }
 
         public override async UniTask<bool> SaveAsync(Camera target, string path, int width, int height, CancellationToken token)

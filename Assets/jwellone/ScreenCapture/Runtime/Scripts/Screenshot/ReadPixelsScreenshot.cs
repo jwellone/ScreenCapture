@@ -110,7 +110,7 @@ namespace jwellone
 
             var width = dest.width;
             var height = dest.height;
-            var sourceRT = RenderTexture.GetTemporary(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+            var sourceRT = RenderTexture.GetTemporary(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32);
             var destRT = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32);
 
             UnityEngine.ScreenCapture.CaptureScreenshotIntoRenderTexture(sourceRT);
@@ -125,7 +125,6 @@ namespace jwellone
 
             RenderTexture.ReleaseTemporary(destRT);
             RenderTexture.active = tmpRT;
-            //dest.Apply();
         }
 
         async UniTask OnCopyAsync(Camera target, Texture2D dest, CancellationToken token)
@@ -143,7 +142,6 @@ namespace jwellone
             dest.ReadPixels(new Rect(0, 0, width, height), 0, 0);
             RenderTexture.active = tmpRT;
             RenderTexture.ReleaseTemporary(destRT);
-            //dest.Apply();
         }
     }
 }

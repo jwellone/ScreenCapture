@@ -4,7 +4,6 @@ using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
-using System.IO;
 
 #nullable enable
 
@@ -120,8 +119,8 @@ namespace jwellone.Sample
             _cameraTexture.Apply(false, false);
 
             var size = _rawImageForScreen.rectTransform.sizeDelta;
-            size.x = width;
-            size.y = height;
+            size.x = Screen.width;
+            size.y = Screen.height;
             _rawImageForScreen.rectTransform.sizeDelta = size;
             _rawImageForScreen.texture = _screenTexture;
 
@@ -159,10 +158,10 @@ namespace jwellone.Sample
                 }
             });
 
+#if false
             UniTask.Void(async () =>
             {
                 var path = Path.Combine(Application.persistentDataPath, "screen.jpg");
-                Debug.Log(path);
                 while (!token.IsCancellationRequested)
                 {
                     if (_executeScreenCapture)
@@ -179,7 +178,6 @@ namespace jwellone.Sample
             UniTask.Void(async () =>
             {
                 var path = Path.Combine(Application.persistentDataPath, "camera.jpg");
-                Debug.Log(path);
                 while (!token.IsCancellationRequested)
                 {
                     if (_executeCameraCapture)
@@ -192,6 +190,7 @@ namespace jwellone.Sample
                     }
                 }
             });
+#endif
         }
 
         void OnEnable()
