@@ -13,10 +13,10 @@ Can capture and save images of the entire screen or a specified camera. Can also
 ## Getting Started
 
 - Acquiring a captured image
-  - User ScreenCapture.screenshot.CopyAsync or ScreenCapture.screenshot.GetAsync function.
+  - Use ScreenCapture.screenshot.CopyAsync or ScreenCapture.screenshot.GetAsync function.
 
 - Save the captured image
-  - User ScreenCapture.screenshot.SaveAsync function.
+  - Use ScreenCapture.screenshot.SaveAsync function.
 
 Please also run SampleScene.unity to check it out.
 
