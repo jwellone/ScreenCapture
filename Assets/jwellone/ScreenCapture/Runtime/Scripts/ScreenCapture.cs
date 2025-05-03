@@ -38,7 +38,7 @@ namespace jwellone
             try
             {
                 await UniTask.SwitchToThreadPool();
-
+                token.ThrowIfCancellationRequested();
                 var bytes = Path.GetExtension(path).ToLower() switch
                 {
                     ".jpg" => ImageConversion.EncodeArrayToJPG(data, graphicsFormat, (uint)width, (uint)height),
@@ -70,6 +70,8 @@ namespace jwellone
             try
             {
                 await UniTask.SwitchToThreadPool();
+                token.ThrowIfCancellationRequested();
+
                 using var bytes = Path.GetExtension(path).ToLower() switch
                 {
                     ".jpg" => ImageConversion.EncodeNativeArrayToJPG(data, graphicsFormat, (uint)width, (uint)height),
@@ -77,7 +79,6 @@ namespace jwellone
                     ".tga" => ImageConversion.EncodeNativeArrayToTGA(data, graphicsFormat, (uint)width, (uint)height),
                     _ => ImageConversion.EncodeNativeArrayToPNG(data, graphicsFormat, (uint)width, (uint)height),
                 };
-                await UniTask.SwitchToMainThread();
 
                 await File.WriteAllBytesAsync(path, bytes.ToArray(), token);
                 return true;
@@ -88,6 +89,10 @@ namespace jwellone
                 {
                     File.Delete(path);
                 }
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
             }
 
             return false;
